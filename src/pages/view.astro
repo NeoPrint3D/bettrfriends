@@ -1,0 +1,10 @@
+---
+import PagesView from "@components/PagesView";
+import Layout from "@layouts/Layout.astro";
+---
+
+<Layout>
+  <div class="min-h-screen">
+    <PagesView client:only="react" />
+  </div>
+</Layout>

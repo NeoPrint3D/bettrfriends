@@ -1,0 +1,118 @@
+---
+import { cn } from "@lib/utils";
+import Container from "./Container.astro";
+import { softGradientVariant as card } from "@tailus/themer-card";
+---
+
+<section id="features" class="scroll-mt-24">
+  <Container>
+    <div
+      class="space-y-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:space-y-0 sm:gap-4"
+    >
+      <div class={cn(card.outer, "!from-[#008986]  !to-[#003333]")}>
+        <div
+          class={cn(
+            card.inner,
+            "flex flex-col justify-between h-full !bg-[#008986]/30"
+          )}
+        >
+          <div></div>
+          <div class="mt-6 space-y-2">
+            <h3 class="text-gray-950 dark:text-white text-lg font-medium">
+              Data Visualization
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              Quam quasi impedit voluptatum a reiciendis tempora atque
+              aspernatur voluptatibus nostru.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class={cn(card.outer, "!from-[#008986]  !to-[#003333]")}>
+        <div
+          class={cn(
+            card.inner,
+            "h-full flex flex-col justify-between !bg-[#008986]/30"
+          )}
+        >
+          <div></div>
+          <div class="mt-6 space-y-2">
+            <h3 class="text-gray-950 dark:text-white text-lg font-medium">
+              Easy Integration
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              Quam quasi impedit voluptatum a reiciendis tempora atque
+              aspernatur voluptatibus nostru.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class={cn(card.outer, "!from-[#008986]  !to-[#003333]")}>
+        <div
+          class={cn(
+            card.inner,
+            "h-full flex flex-col justify-between !bg-[#008986]/30"
+          )}
+        >
+          <div>
+            <div
+              class="py-2 relative aspect-video bg-white border flex items-center justify-center dark:border-info-400/20 dark:bg-transparent"
+            >
+              <div class="absolute -inset-1 flex justify-between">
+                <div class="flex flex-col justify-between">
+                  <div
+                    class="size-2 rounded-full border border-info-500 bg-white"
+                  >
+                  </div>
+                  <div
+                    class="size-2 rounded-full border border-info-500 bg-white"
+                  >
+                  </div>
+                </div>
+                <div class="flex flex-col justify-between">
+                  <div
+                    class="size-2 rounded-full border border-info-500 bg-white"
+                  >
+                  </div>
+                  <div
+                    class="size-2 rounded-full border border-info-500 bg-white"
+                  >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-6 space-y-2">
+            <h3 class="text-gray-950 dark:text-white text-lg font-medium">
+              Real Time Insights
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              Quam quasi impedit voluptatum a reiciendis tempora atque
+              aspernatur voluptatibus nostru.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class={cn(card.outer, "!from-[#008986]  !to-[#003333]")}>
+        <div
+          class={cn(
+            card.inner,
+            "flex flex-col justify-between h-full !bg-[#008986]/30"
+          )}
+        >
+          <div></div>
+          <div class="mt-6 space-y-2">
+            <h3 class="text-gray-950 dark:text-white text-lg font-medium">
+              Loved by the Community
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400">
+              Supported by a network of early advocates, contributors, and
+              champions.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Container>
+</section>
