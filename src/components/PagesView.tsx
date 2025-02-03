@@ -142,7 +142,7 @@ const CatAnimation = ({ action, model }) => {
 
 export default function PagesView() {
     const [action, setAction] = useState<"walk" | "talk" | "meme" | "shove" | null>("");
-    const model = useGLTF("/drew.glb", true, true);
+    const model = useGLTF("https://pub-365847fac9764fb0adb34f285472ce87.r2.dev/drew.glb", true, true);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
 
@@ -209,6 +209,11 @@ export default function PagesView() {
 
                 <DrewAnimation action={action} model={model} />
 
+<primitive
+                    object={model.nodes.Logo}
+                    position={[model.scene.children[2].position.x  -1 , model.scene.children[2].position.y -0.5, model.scene.children[2].position.z - 5]}
+                    rotation={[model.scene.children[2].rotation.x + Math.PI/ 2, model.scene.children[2].rotation.y + 5 - Math.PI/2, model.scene.children[2].rotation.z  ]}
+                />
                 {action === 'meme' && (
                     <CatAnimation action={action} model={model} />
                 )}
@@ -221,11 +226,7 @@ export default function PagesView() {
                     rotation={[model.scene.children[1].rotation.x, model.scene.children[1].rotation.y, model.scene.children[1].rotation.z + Math.PI + 0.4]}
                     scale={1.5}
                 />
-                <primitive
-                    object={model.nodes.Logo}
-                    position={[model.scene.children[2].position.x - 3, model.scene.children[2].position.y, model.scene.children[2].position.z - 11]}
-                    rotation={[model.scene.children[2].rotation.x, model.scene.children[2].rotation.y, model.scene.children[2].rotation.z + Math.PI + 0.4]}
-                />
+                
             </Canvas>
         </div>
     );
