@@ -18,9 +18,33 @@ const CameraSetup = () => {
     return null;
 };
 
+const DEFAULT_POSITION = [0, 0, -4];
+
 const DrewAnimation = ({ action, model }) => {
     const drewRef = useRef<THREE.Mesh>(null!);
+    const walkOffset = useRef(0);
+    const previousAction = useRef(action);
 
+    // Spring animation setup
+    const [{ pos }, api] = useSpring(() => ({
+        pos: DEFAULT_POSITION,
+        config: { tension: 200, friction: 15 }
+    }));
+
+    // Reset position when action changes
+    useEffect(() => {
+        if (previousAction.current !== action) {
+            if (drewRef.current) {
+                drewRef.current.position.y = DEFAULT_POSITION[1];
+                drewRef.current.position.x = DEFAULT_POSITION[0];
+                drewRef.current.rotation.y = 0;
+            }
+            
+            api.start({ pos: DEFAULT_POSITION });
+            walkOffset.current = 0;
+        }
+        previousAction.current = action;
+    }, [action, api]);
 
     // Bobbing animation for talk action
     useFrame(({ clock }) => {
@@ -29,56 +53,56 @@ const DrewAnimation = ({ action, model }) => {
         }
     });
 
-    // Spring animation for shove action
-    const [{ pos }, api] = useSpring(() => ({
-        pos: [0, 0, -4],
-        config: { tension: 200, friction: 15 }
-    }));
-
+    // Handle shove action
     useEffect(() => {
         if (action === 'shove') {
             api.start({
                 pos: [-2, 0, -4],
                 onRest: () => {
-                    api.start({ pos: [0, 0, -4] });
-                    // setAction(null);
+                    api.start({ pos: DEFAULT_POSITION });
                 }
             });
         }
-    }, [action]);
+    }, [action, api]);
 
-    // Walk animation
-    const walkOffset = useRef(0);
+    // Improved walk animation with natural movement
     useFrame(({ clock }) => {
         if (action === 'walk' && drewRef.current) {
-            walkOffset.current += 0.02;
-            drewRef.current.position.x = Math.sin(walkOffset.current) * 2;
-            drewRef.current.rotation.y = Math.sin(walkOffset.current) * 0.5;
+            // Increment walk cycle
+            walkOffset.current += 0.015; // Slower, more natural pace
+
+            // Horizontal movement (figure-8 pattern)
+            const xMovement = Math.sin(walkOffset.current) * 0.5;
+            
+            // Vertical bounce with half the frequency of the horizontal movement
+            const yBounce = Math.abs(Math.sin(walkOffset.current * 2)) * 0.15;
+            
+            // Smooth rotation that follows the direction of movement
+            const rotation = Math.cos(walkOffset.current) * 0.2;
+            
+            // Forward/backward slight movement
+            const zMovement = Math.sin(walkOffset.current * 2) * 0.1;
+
+            // Apply all transformations
+            drewRef.current.position.x = xMovement;
+            drewRef.current.position.y = yBounce;
+            drewRef.current.position.z = DEFAULT_POSITION[2] + zMovement;
+            drewRef.current.rotation.y = rotation;
+            
+            // Subtle tilt in the direction of movement
+            drewRef.current.rotation.z = -xMovement * 0.2;
         }
     });
 
-    // Handle meme audio
-    useEffect(() => {
-        // if (action === 'meme') {
-        //     controls.play();
-        // } else {
-        //     controls.pause();
-        //     controls.seek(0);
-        // }
-    }, [action]);
-
     return (
-        <>
-            {/* {audio} */}
-            <animated.mesh
-                ref={drewRef}
-                geometry={model.nodes.Drew.geometry}
-                material={model.nodes.Drew.material}
-                position={pos.to((x, y, z) => [x, y, z])}
-                rotation={model.scene.children[0].rotation}
-                scale={1.5}
-            />
-        </>
+        <animated.mesh
+            ref={drewRef}
+            geometry={model.nodes.Drew.geometry}
+            material={model.nodes.Drew.material}
+            position={pos.to((x, y, z) => [x, y, z])}
+            rotation={model.scene.children[0].rotation}
+            scale={1.5}
+        />
     );
 };
 
@@ -89,7 +113,11 @@ const CatAnimation = ({ action, model }) => {
     // meme animation which just spins the cat
     useFrame(({ clock }) => {
         if (action === 'meme' && catRef.current) {
-            catRef.current.rotation.z += 0.5;
+            const speed = 0.1 + (clock.elapsedTime * 0.01);
+        
+            // Apply rotation with increasing speed
+            catRef.current.rotation.z += Math.max(speed, 1);
+    
         }
     });
 
@@ -113,20 +141,27 @@ const CatAnimation = ({ action, model }) => {
 }
 
 export default function PagesView() {
-    const [action, setAction] = useState<"walk" | "talk" | "meme" | "shove" | null>("meme");
+    const [action, setAction] = useState<"walk" | "talk" | "meme" | "shove" | null>("");
     const model = useGLTF("/drew.glb", true, true);
-    const [audio, state, controls] = useAudio({
-        src: "/cat.mp3",
-        autoPlay: false,
-    });
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
 
     useEffect(() => {
         const channel = supabase
-            .channel('all')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'all' }, (payload) => {
+        .channel('controls')
+        .on('postgres_changes', 
+            { 
+                event: 'UPDATE', 
+                schema: 'public', 
+                table: 'all',
+                filter: 'id=eq.1'
+            }, 
+            (payload) => {
+                console.log('New action:', (payload.new as any).action);
                 setAction((payload.new as any).action);
-            })
-            .subscribe();
+            }
+        )
+        .subscribe();
 
         return () => {
             channel.unsubscribe();
@@ -136,27 +171,32 @@ export default function PagesView() {
 
     useEffect(() => {
         if (action === 'meme') {
-            const playAudio = async () => {
-                try {
-                    await controls.play();
-                } catch (error) {
-                    console.log('Audio playback failed:', error);
-                }
-            };
-            playAudio();
-        } else {
-            controls.pause();
+            audioRef.current = new Audio('/cat.mp3');
+            audioRef.current.loop = true;
+            audioRef.current.play().catch(error => {
+                console.error('Audio play failed:', error);
+            });
+        } else if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
         }
-    });
+
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
+    }, [action]);
 
     return (
         <div className="h-screen pt-28">
-            {audio}
+            <audio src="/cat.mp3" ref={audioRef} />
 
             <Canvas>
                 <CameraSetup />
                 <OrbitControls target={new THREE.Vector3(0, -3, -10)} />
-                <ambientLight intensity={3} color={"#007f7f10"} />
+                <ambientLight intensity={4} />
                 <pointLight position={[10, 10, 10]} />
 
                 <PerspectiveCamera
@@ -175,8 +215,8 @@ export default function PagesView() {
 
                 {/* Other static elements */}
                 <mesh
-                    geometry={model.nodes.Room.geometry}
-                    material={model.nodes.Room.material}
+                    geometry={(model.nodes.Room as any).geometry}
+                    material={(model.nodes.Room as any).material}
                     position={model.scene.children[1].position}
                     rotation={[model.scene.children[1].rotation.x, model.scene.children[1].rotation.y, model.scene.children[1].rotation.z + Math.PI + 0.4]}
                     scale={1.5}
