@@ -37,7 +37,7 @@ export default function PagesControl() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gray-100 p-8">
+        <div className="min-h-screen bg-gray-100 p-8 flex items-center justify-center">
             <div className="max-w-md mx-auto bg-white rounded-xl shadow-md p-6">
                 <div className="mb-6 flex items-center gap-2">
                     <div className={`h-3 w-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
